@@ -100,14 +100,20 @@ window.Mime = do ->
       for attach in attaches
         type = attach.type
         name = attach.name
-        base64 = attach.base64
         id = getBoundary()
-
-        result.push '\nContent-Type: ' + type + '; name=\"' + name + '\"' +
-          '\nContent-Disposition: attachment; filename=\"' + name + '\"' +
-          '\nContent-Transfer-Encoding: base64' +
-          '\nX-Attachment-Id: ' + id +
-          '\n\n' + base64
+        content = ''
+        part = '\nContent-Type: ' + type
+        if name
+          part += '; name=\"' + name + '\"' +
+          '\nContent-Disposition: attachment; filename=\"' + name + '\"'
+        if attach.base64
+          content = attach.base64
+          part += '\nContent-Transfer-Encoding: base64'
+        else
+          content = attach.raw
+        part += '\nX-Attachment-Id: ' + id
+        part += '\n\n' + content
+        result.push(part)
       result
 
     createMixed = (related, attaches) ->

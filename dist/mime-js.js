@@ -78,7 +78,7 @@
         return relatedStr + '\n--' + boundary + '--';
       };
       createAttaches = function(attaches) {
-        var attach, base64, id, j, len, name, result, type;
+        var attach, content, id, j, len, name, part, result, type;
         if (!attaches) {
           return;
         }
@@ -87,9 +87,21 @@
           attach = attaches[j];
           type = attach.type;
           name = attach.name;
-          base64 = attach.base64;
           id = getBoundary();
-          result.push('\nContent-Type: ' + type + '; name=\"' + name + '\"' + '\nContent-Disposition: attachment; filename=\"' + name + '\"' + '\nContent-Transfer-Encoding: base64' + '\nX-Attachment-Id: ' + id + '\n\n' + base64);
+          content = '';
+          part = '\nContent-Type: ' + type;
+          if (name) {
+            part += '; name=\"' + name + '\"' + '\nContent-Disposition: attachment; filename=\"' + name + '\"';
+          }
+          if (attach.base64) {
+            content = attach.base64;
+            part += '\nContent-Transfer-Encoding: base64';
+          } else {
+            content = attach.raw;
+          }
+          part += '\nX-Attachment-Id: ' + id;
+          part += '\n\n' + content;
+          result.push(part);
         }
         return result;
       };
@@ -193,7 +205,7 @@
       messageParts = "";
       try {
         messageParts = explodeMessage(rawMessage);
-      } catch(_error) {}
+      } catch (error) {}
       rawHeaders = messageParts.rawHeaders;
       getValidStr = function(arr) {
         if (arr == null) {
@@ -454,8 +466,8 @@
         } else {
           console.log("Warning: mime type isn't supported! mime=" + mimeType);
         }
-      } catch(_error) {
-        err = _error;
+      } catch (error) {
+        err = error;
         throw new Error(err);
       }
       wrapPreTag = function(txt) {
